@@ -1,4 +1,4 @@
-package com.alexlondon07.new_api;
+package com.alexlondon07.news_api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
