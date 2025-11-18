@@ -1,0 +1,37 @@
+graph TB
+    Client[Client/Browser]
+
+    subgraph "Docker Environment"
+        NewsAPI[news-api:8080<br/>REST API Service]
+        Worker[worker-service:8081<br/>Kafka Consumer]
+        Kafka[Apache Kafka<br/>Message Broker]
+        Zookeeper[Zookeeper<br/>Kafka Coordinator]
+        Redis[(Redis Cache<br/>Port 6379)]
+
+        Kafka -->|depends on| Zookeeper
+    end
+
+    MediaStack[MediaStack API<br/>External News Service]
+
+    Client -->|1. GET /api/v1/news?date=YYYY-MM-DD| NewsAPI
+    NewsAPI -->|2. Check cache| Redis
+    Redis -->|3a. Cache HIT<br/>Return data| NewsAPI
+    NewsAPI -->|3b. Cache MISS<br/>Publish date to 'news' topic| Kafka
+    NewsAPI -->|4. Return 404| Client
+
+    Kafka -->|5. Consume message| Worker
+    Worker -->|6. Fetch news by date| MediaStack
+    MediaStack -->|7. Return news data| Worker
+    Worker -->|8. Store in cache| Redis
+
+    Client -->|9. Retry request| NewsAPI
+    NewsAPI -->|10. Check cache again| Redis
+    Redis -->|11. Cache HIT<br/>Return cached data| NewsAPI
+    NewsAPI -->|12. Return 200 OK| Client
+
+    style NewsAPI fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
+    style Worker fill:#2196F3,stroke:#333,stroke-width:2px,color:#fff
+    style Kafka fill:#FF9800,stroke:#333,stroke-width:2px,color:#fff
+    style Redis fill:#F44336,stroke:#333,stroke-width:2px,color:#fff
+    style Zookeeper fill:#9C27B0,stroke:#333,stroke-width:2px,color:#fff
+    style MediaStack fill:#00BCD4,stroke:#333,stroke-width:2px,color:#fff
