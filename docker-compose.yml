@@ -68,5 +68,18 @@ services:
     ports:
       - "8081:8081"
 
+  crypto-fetcher-service:
+    build:
+      context: ./crypto-fetcher-service
+      dockerfile: Dockerfile
+    image: crypto-fetcher-service:latest
+    container_name: crypto-fetcher-service
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_SERVER: kafka:29092
+    ports:
+      - "8083:8083"
+
 volumes:
   redis-data:

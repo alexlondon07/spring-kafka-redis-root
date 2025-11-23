@@ -1,0 +1,23 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: crypto-fetcher-service
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+# Scheduler configuration
+scheduler:
+  fetch-interval: 300000  # 5 minutos (en ms)
+
+logging:
+  level:
+    com.alexlondon07: DEBUG
+    org.apache.kafka: WARN

@@ -2,3 +2,4 @@ rootProject.name = 'spring-kafka-redis-root'
 
 include 'news-api'
 include 'worker-service'
+include 'crypto-fetcher-service'
