@@ -7,6 +7,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -31,5 +32,10 @@ public class KafkaProducerConfig {
         configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
 
         return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, CryptoPrice> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
     }
 }
