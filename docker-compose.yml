@@ -93,5 +93,22 @@ services:
     ports:
       - "8083:8083"
 
+  price-processor-service:
+    build:
+      context: ./price-processor-service
+      dockerfile: Dockerfile
+    image: price-processor-service:latest
+    container_name: price-processor-service
+    depends_on:
+      - kafka
+      - redis
+    environment:
+      KAFKA_SERVER: kafka:29092
+      REDIS_SERVER: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: myredis
+    ports:
+      - "8084:8084"
+
 volumes:
   redis-data:

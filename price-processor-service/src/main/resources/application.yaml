@@ -1,0 +1,26 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: price-processor-service
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER:localhost:29092}
+    consumer:
+      group-id: price-processor-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+  data:
+    redis:
+      host: ${REDIS_SERVER:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:myredis}
+
+logging:
+  level:
+    com.espejo: DEBUG
