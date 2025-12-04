@@ -28,6 +28,7 @@ graph TB
 
         subgraph "Crypto Flow"
             CryptoFetcher[crypto-fetcher-service:8083<br/>Scheduled Producer]
+            PriceProcessor[price-processor-service:8084<br/>Price Storage & Analytics]
         end
 
         subgraph "Infrastructure"
@@ -54,13 +55,16 @@ graph TB
     Worker -->|6. Store in cache| Redis
 
     %% Crypto Flow
-    CryptoFetcher -->|Scheduled every 5min| CoinGecko
-    CoinGecko -->|Return prices| CryptoFetcher
-    CryptoFetcher -->|Publish to 'crypto-prices' topic| Kafka
+    CryptoFetcher -->|1. Scheduled every 5min| CoinGecko
+    CoinGecko -->|2. Return prices| CryptoFetcher
+    CryptoFetcher -->|3. Publish to 'crypto-prices' topic| Kafka
+    Kafka -->|4. Consume messages| PriceProcessor
+    PriceProcessor -->|5. Store current, history & stats| Redis
 
     style NewsAPI fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
     style Worker fill:#2196F3,stroke:#333,stroke-width:2px,color:#fff
     style CryptoFetcher fill:#9C27B0,stroke:#333,stroke-width:2px,color:#fff
+    style PriceProcessor fill:#FF6B6B,stroke:#333,stroke-width:2px,color:#fff
     style Kafka fill:#FF9800,stroke:#333,stroke-width:2px,color:#fff
     style Redis fill:#F44336,stroke:#333,stroke-width:2px,color:#fff
     style KafkaUI fill:#00BCD4,stroke:#333,stroke-width:2px,color:#fff
@@ -83,12 +87,12 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 - [x] Publish prices to Kafka with message keys
 - [x] Verify messages in Kafka UI
 
-### Phase 2: Price Processor Service - PENDING
+### Phase 2: Price Processor Service - COMPLETED
 
-- [ ] Create module `price-processor-service`
-- [ ] Configure Kafka consumer
-- [ ] Implement Redis storage logic
-- [ ] Calculate statistics (min, max, avg)
+- [x] Create module `price-processor-service`
+- [x] Configure Kafka consumer with ErrorHandlingDeserializer
+- [x] Implement Redis storage logic (current price, history, stats)
+- [x] Calculate statistics (min, max, avg) with running average algorithm
 
 ### Phase 3: Alert Service - PENDING
 
@@ -142,7 +146,20 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
   - Uses message keys (BTC, ETH, SOL) for partitioning
   - Tracks Bitcoin, Ethereum, and Solana prices
 
-### 4. Apache Kafka + Zookeeper
+### 4. price-processor-service (Port 8084)
+**Price Storage and Analytics** - Consumes crypto prices and stores data in Redis
+
+- **Technology**: Spring Boot 3.5.7, Spring Data Redis Reactive
+- **Role**: Consumer service
+- **Responsibilities**:
+  - Listens to Kafka topic "crypto-prices" with consumer group "price-processor-group"
+  - Stores current price in Redis: `crypto:current:{symbol}`
+  - Maintains price history in Redis: `crypto:history:{symbol}`
+  - Calculates and stores statistics (min, max, avg): `crypto:stats:{symbol}`
+  - Uses ErrorHandlingDeserializer to skip corrupted messages
+  - Implements running average algorithm for efficient stats calculation
+
+### 5. Apache Kafka + Zookeeper
 **Message Broker** - Enables asynchronous communication
 
 - **Image**: confluentinc/cp-kafka:7.5.0
@@ -151,16 +168,18 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
   - `crypto-prices` - Cryptocurrency price updates
 - **Purpose**: Decouples services and enables async processing
 
-### 5. Redis
+### 6. Redis
 **Cache Layer** - Stores data for fast retrieval
 
 - **Image**: redis:latest
 - **Purpose**: Fast data retrieval and reduced external API calls
 - **Key Patterns**:
   - News: Date strings (YYYY-MM-DD)
-  - Crypto: `crypto:current:{symbol}`, `crypto:stats:{symbol}`
+  - Crypto Current: `crypto:current:{symbol}` (e.g., `crypto:current:BTC`)
+  - Crypto History: `crypto:history:{symbol}` (List of historical prices)
+  - Crypto Stats: `crypto:stats:{symbol}` (min, max, avg, count)
 
-### 6. Kafka UI (Port 8090)
+### 7. Kafka UI (Port 8090)
 **Monitoring Dashboard** - Visual interface for Kafka
 
 - **Image**: provectuslabs/kafka-ui:latest
@@ -208,15 +227,19 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 4. news-api → Return 200 OK with cached news data
 ```
 
-### Crypto Flow - Scheduled Fetch
+### Crypto Flow - Complete Process
 ```
-1. Scheduler triggers every 5 minutes
-2. crypto-fetcher-service → Call CoinGecko API
-3. CoinGecko API → Return BTC, ETH, SOL prices
+1. Scheduler triggers every 5 minutes in crypto-fetcher-service
+2. crypto-fetcher-service → Call CoinGecko API for BTC, ETH, SOL
+3. CoinGecko API → Return current prices
 4. crypto-fetcher-service → Publish each price to Kafka topic "crypto-prices"
    - Key: Symbol (BTC, ETH, SOL)
    - Value: CryptoPrice object
-5. Messages available for consumers (price-processor, alert-service)
+5. price-processor-service → Consume messages from Kafka
+6. price-processor-service → Store in Redis:
+   - Current price: crypto:current:{symbol}
+   - Price history: crypto:history:{symbol}
+   - Statistics: crypto:stats:{symbol} (min, max, avg, count)
 ```
 
 ## Prerequisites
@@ -256,6 +279,7 @@ You should see all containers running:
 - news-api
 - worker-service
 - crypto-fetcher-service
+- price-processor-service
 
 ### 5. Access Kafka UI
 Open http://localhost:8090 to monitor:
@@ -272,6 +296,7 @@ docker-compose logs -f
 docker-compose logs -f news-api
 docker-compose logs -f worker-service
 docker-compose logs -f crypto-fetcher-service
+docker-compose logs -f price-processor-service
 ```
 
 ## API Endpoints
@@ -361,6 +386,14 @@ The crypto-fetcher-service runs automatically and publishes prices to Kafka ever
 |----------|-------------|---------|
 | KAFKA_SERVER | Kafka bootstrap server | kafka:29092 |
 
+### price-processor-service
+| Variable | Description | Default |
+|----------|-------------|---------|
+| KAFKA_SERVER | Kafka bootstrap server | kafka:29092 |
+| REDIS_SERVER | Redis host | redis |
+| REDIS_PORT | Redis port | 6379 |
+| REDIS_PASSWORD | Redis password | myredis |
+
 ## Project Structure
 
 ```
@@ -400,6 +433,18 @@ spring-kafka-redis-root/
 │   ├── Dockerfile
 │   └── build.gradle
 │
+├── price-processor-service/        # Price Storage & Analytics
+│   ├── src/main/java/
+│   │   └── com/alexlondon07/price_processor_service/
+│   │       ├── config/              # Kafka, Redis configs
+│   │       ├── listener/            # Kafka listeners
+│   │       ├── service/             # Price storage & stats logic
+│   │       ├── repository/          # Redis operations
+│   │       ├── model/               # CryptoPrice, PriceStats models
+│   │       └── utils/               # Constants
+│   ├── Dockerfile
+│   └── build.gradle
+│
 ├── docker-compose.yml               # Container orchestration
 ├── build.gradle                     # Root build configuration
 ├── settings.gradle                  # Multi-module setup
@@ -415,6 +460,7 @@ spring-kafka-redis-root/
 ./gradlew :news-api:build
 ./gradlew :worker-service:build
 ./gradlew :crypto-fetcher-service:build
+./gradlew :price-processor-service:build
 ```
 
 ### Run tests
@@ -437,6 +483,10 @@ cd worker-service
 # Terminal 3 - crypto-fetcher-service
 cd crypto-fetcher-service
 ../gradlew bootRun
+
+# Terminal 4 - price-processor-service
+cd price-processor-service
+../gradlew bootRun
 ```
 
 ### Clean and rebuild
@@ -455,7 +505,8 @@ docker-compose up -d --build
 - **Message Keys**: Kafka partitioning for ordered processing per symbol
 - **Asynchronous Processing**: Background workers handle heavy operations
 - **Monitoring**: Kafka UI for real-time message visualization
-- **Error Handling**: Comprehensive error handling for external API failures
+- **Error Handling**: Comprehensive error handling for external API failures and message deserialization
+- **ErrorHandlingDeserializer**: Gracefully handles corrupted Kafka messages
 - **Validation**: Request validation with Jakarta Validation
 - **Containerization**: Fully containerized with Docker Compose
 - **Scalability**: Kafka consumer groups allow horizontal scaling
@@ -488,6 +539,7 @@ docker exec -it spring-kafka-redis-root-redis-1 redis-cli
 docker-compose logs news-api
 docker-compose logs worker-service
 docker-compose logs crypto-fetcher-service
+docker-compose logs price-processor-service
 
 # Rebuild from scratch
 docker-compose down -v
@@ -513,6 +565,7 @@ docker-compose down
 lsof -i :8080
 lsof -i :8081
 lsof -i :8083
+lsof -i :8084
 lsof -i :8090
 
 # Kill the process or change port in docker-compose.yml
@@ -530,7 +583,7 @@ docker-compose down -v
 
 ## Future Enhancements
 
-- [ ] **Phase 2**: Price Processor Service - Store prices and calculate stats
+- [x] **Phase 2**: Price Processor Service - Store prices and calculate stats ✅ COMPLETED
 - [ ] **Phase 3**: Alert Service - Detect significant price changes
 - [ ] **Phase 4**: Crypto API - REST endpoints for crypto data
 - [ ] Add authentication and authorization
