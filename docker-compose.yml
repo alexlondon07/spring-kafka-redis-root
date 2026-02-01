@@ -173,6 +173,9 @@ services:
       DD_TRACE_ENABLED: true
       DD_LOGS_INJECTION: true
       DD_JMXFETCH_ENABLED: true
+      DD_DOGSTATSD_PORT: 8125
+      DD_METRICS_ENABLED: true
+      MANAGEMENT_METRICS_EXPORT_SIMPLE_ENABLED: true
     ports:
       - "8084:8084"
     labels:

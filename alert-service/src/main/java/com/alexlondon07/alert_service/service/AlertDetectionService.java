@@ -25,6 +25,9 @@ public class AlertDetectionService {
         BigDecimal currentPrice = cryptoPrice.getPriceUsd();
         BigDecimal previousPrice = lastPrices.get(symbol);
 
+        // update last price
+        lastPrices.put(symbol, currentPrice);
+
         if (previousPrice == null) {
             log.debug(" First price for {}, no alert ", symbol);
             return Optional.empty();
@@ -60,7 +63,8 @@ public class AlertDetectionService {
             return Optional.of(alert);
         }
 
-
+        log.debug("{} change: {}% (threshold: {}%)",
+                symbol, change, Constants.ALERT_THRESHOLD_PERCENT);
 
         return Optional.empty();
     }

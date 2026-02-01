@@ -27,6 +27,7 @@ public class KafkaListeners {
         mediaStackService.sendRequest(date)
                 .flatMap(response -> {
                     try {
+                        log.info("Response received from external API for date {}: {}", date, response.getBody());
                         return newsRepository.saveNews(date, response.getBody());
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException("Error processing JSON: ", e));
