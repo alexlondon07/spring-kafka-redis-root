@@ -1,0 +1,72 @@
+{
+  "title": "Java Microservices Health (Docker Local)",
+  "description": "Monitoreo de JVM, Errores y Kafka",
+  "widgets": [
+    {
+      "definition": {
+        "title": "Estado Global de Monitores",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "manage_status",
+        "summary_type": "monitors",
+        "query": "tag:env:docker-local",
+        "sort": "status,asc",
+        "display_format": "list",
+        "color_preference": "status"
+      },
+      "layout": { "x": 0, "y": 0, "width": 4, "height": 4 }
+    },
+    {
+      "definition": {
+        "title": "Uso de Memoria Heap JVM por Servicio",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:jvm.memory.used{memory:heap} by {service} / avg:jvm.memory.max{memory:heap} by {service} * 100",
+            "display_type": "line",
+            "style": { "palette": "dog_classic", "line_type": "solid", "line_width": "normal" }
+          }
+        ],
+        "yaxis": { "label": "Porcentaje %", "scale": "linear", "min": "0", "max": "100" }
+      },
+      "layout": { "x": 4, "y": 0, "width": 4, "height": 4 }
+    },
+    {
+      "definition": {
+        "title": "Tasa de Errores (5xx)",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:http.server.requests{status:5*}.as_rate() by {service}",
+            "display_type": "bars",
+            "style": { "palette": "red" }
+          }
+        ]
+      },
+      "layout": { "x": 8, "y": 0, "width": 4, "height": 4 }
+    },
+    {
+      "definition": {
+        "title": "Consumer Lag de Kafka",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:kafka.consumer.lag{*} by {topic}",
+            "aggregator": "avg"
+          }
+        ],
+        "autoscale": true,
+        "precision": 2
+      },
+      "layout": { "x": 0, "y": 4, "width": 4, "height": 2 }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "service",
+      "prefix": "service",
+      "default": "*"
+    }
+  ],
+  "layout_type": "free"
+}

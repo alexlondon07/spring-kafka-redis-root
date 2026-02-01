@@ -23,7 +23,6 @@ public class PriceAlertListener {
     )
     public void onPricerECEIVED(CryptoPrice price){
         log.debug("Price received for {} : ${}", price.getSymbol(), price.getPriceUsd());
-        log.debug("Evaluating price for alerts...", price.getSymbol());
 
         alertDetectionService.evaluatePrice(price)
                 .ifPresent(alertPublisherService::publishAlert);
