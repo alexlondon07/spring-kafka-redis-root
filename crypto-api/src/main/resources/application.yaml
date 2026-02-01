@@ -1,0 +1,11 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: crypto-api
+  data:
+    redis:
+      host: ${REDIS_SERVER:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:myredis}

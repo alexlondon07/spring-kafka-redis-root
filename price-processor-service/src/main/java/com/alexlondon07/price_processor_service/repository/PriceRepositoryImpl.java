@@ -39,7 +39,7 @@ public class PriceRepositoryImpl implements PriceRepository {
 
     @Override
     public Mono<Boolean> saveStats(PriceStats stats) {
-        String key = Constants.REDIS_KEY_CURRENT + stats.getSymbol();
+        String key = Constants.REDIS_KEY_STATS + stats.getSymbol();
         return redisTemplate.opsForValue()
                 .set(key, stats)
                 .doOnSuccess(success -> log.info("Saved stats for {}: {}", stats.getSymbol(), stats))
