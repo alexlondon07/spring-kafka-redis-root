@@ -1,7 +1,6 @@
-package com.alexlondon07.price_processor_service.config;
+package com.alexlondon07.alert_service.config;
 
-
-import com.alexlondon07.price_processor_service.model.CryptoPrice;
+import com.alexlondon07.alert_service.model.CryptoPrice;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class KafkaConsumerConfig {
+public class KafkaConfig {
+
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
@@ -47,7 +47,6 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, CryptoPrice> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(3); // Set the number of concurrent threads
         return factory;
     }
 }

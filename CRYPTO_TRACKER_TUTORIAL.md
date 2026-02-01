@@ -1467,7 +1467,7 @@ package com.espejo.alertservice.service;
 
 import com.espejo.alertservice.model.CryptoPrice;
 import com.espejo.alertservice.model.PriceAlert;
-import com.espejo.alertservice.utils.Constants;
+import com.espejo.alertservice.utils.Constants;s
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
