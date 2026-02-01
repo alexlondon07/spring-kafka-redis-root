@@ -27,13 +27,29 @@ management:
       exposure:
         include: health,info,metrics,prometheus
   metrics:
+    export:
+      simple:
+        enabled: true
     tags:
       application: ${spring.application.name}
       service: ${DD_SERVICE:price-processor-service}
       env: ${DD_ENV:docker-local}
+  tracing:
+    sampling:
+      probability: 1.0
   endpoint:
     health:
       show-details: always
+
+# Datadog configuration
+datadog:
+  trace:
+    enabled: true
+    agent-host: ${DD_AGENT_HOST:localhost}
+    agent-port: 8126
+    service-name: ${DD_SERVICE:price-processor-service}
+    env: ${DD_ENV:docker-local}
+    version: ${DD_VERSION:1.0.0}
 
 logging:
   level:
