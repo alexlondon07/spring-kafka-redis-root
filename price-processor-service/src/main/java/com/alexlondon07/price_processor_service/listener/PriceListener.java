@@ -22,9 +22,9 @@ public class PriceListener {
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void onPriceReceived(ConsumerRecord<String, CryptoPrice> record){
+
         String key = record.key();
         CryptoPrice price = record.value();
-
         int partition = record.partition();
         long offset = record.offset();
 

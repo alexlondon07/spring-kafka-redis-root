@@ -110,5 +110,22 @@ services:
     ports:
       - "8084:8084"
 
+  alert-service:
+    build:
+      context: ./alert-service
+      dockerfile: Dockerfile
+    image: alert-service:latest
+    container_name: alert-service
+    depends_on:
+      - kafka
+      - redis
+    environment:
+      KAFKA_SERVER: kafka:29092
+      REDIS_SERVER: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: myredis
+    ports:
+      - "8085:8085"
+
 volumes:
   redis-data:
