@@ -13,6 +13,20 @@ spring:
       properties:
         spring.json.add.type.headers: false
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      service: ${DD_SERVICE:crypto-fetcher-service}
+      env: ${DD_ENV:docker-local}
+  endpoint:
+    health:
+      show-details: always
+
 # Scheduler configuration
 scheduler:
   fetch-interval: 300000  # 5 minutos (en ms)

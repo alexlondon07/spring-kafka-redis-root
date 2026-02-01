@@ -21,6 +21,20 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:myredis}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      service: ${DD_SERVICE:alert-service}
+      env: ${DD_ENV:docker-local}
+  endpoint:
+    health:
+      show-details: always
+
 logging:
   level:
     com.alexlondon07: DEBUG

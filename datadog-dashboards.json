@@ -1,0 +1,52 @@
+{
+  "title": "Java Microservices Dashboard",
+  "layout_type": "ordered",
+  "widgets": [
+    {
+      "definition": {
+        "type": "group",
+        "title": "Infraestructura y JVM",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Uso de Memoria Heap por Servicio",
+              "type": "timeseries",
+              "requests": [{"q": "avg:jvm.memory.used{*} by {service} / avg:jvm.memory.max{*} by {service} * 100"}]
+            }
+          },
+          {
+            "definition": {
+              "title": "Frecuencia de Garbage Collection",
+              "type": "timeseries",
+              "requests": [{"q": "sum:jvm.gc.pause.count{*} by {service}.as_rate() > 10"}]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Rendimiento y Tráfico",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Tasa de Errores 5xx",
+              "type": "timeseries",
+              "requests": [{"q": "sum:http.server.requests{status:5*}.as_rate() by {service}"}]
+            }
+          },
+          {
+            "definition": {
+              "title": "Latencia P95",
+              "type": "timeseries",
+              "requests": [{"q": "avg:http.server.requests{quantile:0.95} by {service,uri}"}]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -12,6 +12,20 @@ spring:
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      service: ${DD_SERVICE:worker-service}
+      env: ${DD_ENV:docker-local}
+  endpoint:
+    health:
+      show-details: always
+
 mediastack:
   uri: ${MEDIASTACK_URI}
   api-key: ${MEDIASTACK_API_KEY}
