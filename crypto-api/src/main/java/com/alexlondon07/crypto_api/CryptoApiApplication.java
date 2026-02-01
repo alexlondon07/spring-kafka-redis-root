@@ -1,0 +1,13 @@
+package com.alexlondon07.crypto_api;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class CryptoApiApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(CryptoApiApplication.class, args);
+	}
+
+}

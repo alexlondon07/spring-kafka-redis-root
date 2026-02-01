@@ -20,6 +20,13 @@ spring:
       host: ${REDIS_SERVER:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:myredis}
+    jackson:
+      serialization:
+        write-dates-as-timestamps: false
+      serialization:
+        write-dates-as-timestamps: false
+      deserialization:
+        fail-on-unknown-properties: false
 
 management:
   endpoints:
