@@ -11,6 +11,6 @@ public class Constants {
     public static final String REDIS_KEY_STATS = "crypto:stats:";      // crypto:stats:BTC
     public static final String REDIS_KEY_HISTORY = "crypto:history:";  // crypto:history:BTC
     // Alert thresholds
-    public static final double ALERT_THRESHOLD_PERCENT = 1.0;
+    public static final double ALERT_THRESHOLD_PERCENT = 5.0;
     private Constants() {}
 }
