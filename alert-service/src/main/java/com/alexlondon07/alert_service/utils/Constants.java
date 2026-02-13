@@ -8,7 +8,7 @@ public class Constants {
 
     public static final String CONSUMER_GROUP = "alert-service-group";
     // Alert thresholds
-    public static final double ALERT_THRESHOLD_PERCENT = 1.0;
+    public static final double ALERT_THRESHOLD_PERCENT = -1; // 0.1% change
 
     // Alert types
     public static final String ALERT_PRICE_INCREASE = "PRICE_INCREASE";

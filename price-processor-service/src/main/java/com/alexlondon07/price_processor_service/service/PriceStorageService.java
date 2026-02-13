@@ -48,9 +48,18 @@ public class PriceStorageService {
                 })
                 .doOnError(error -> {
                     log.error("Error processing price for {}: {}", price.getSymbol(), error.getMessage());
-                    meterRegistry.counter("price.storage.error", 
-                            "symbol", price.getSymbol(),
-                            "error_type", error.getClass().getSimpleName()).increment();
+                    
+                    // Handle Jackson deserialization errors specifically
+                    if (error.getMessage() != null && error.getMessage().contains("Java 8 date/time type")) {
+                        log.error("Jackson JSR310 deserialization error for {}: {}", price.getSymbol(), error.getMessage());
+                        meterRegistry.counter("price.storage.error", 
+                                "symbol", price.getSymbol(),
+                                "error_type", "JacksonDeserializationError").increment();
+                    } else {
+                        meterRegistry.counter("price.storage.error", 
+                                "symbol", price.getSymbol(),
+                                "error_type", error.getClass().getSimpleName()).increment();
+                    }
                 })
         );
                 

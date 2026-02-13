@@ -192,6 +192,7 @@ services:
       - redis
       - datadog-agent
     environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       KAFKA_SERVER: kafka:29092
       REDIS_SERVER: redis
       REDIS_PORT: 6379
