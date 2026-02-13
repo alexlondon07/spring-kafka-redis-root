@@ -103,6 +103,8 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 **REST API Service** - Handles client requests and manages cache
 - **Technology**: Spring Boot 3.5.7, Spring WebFlux (Reactive)
 - **Role**: Kafka Producer + REST API
+- **Swagger UI**: http://localhost:8080/swagger.html
+- **OpenAPI Docs**: http://localhost:8080/v3/api-docs
 - Exposes `GET /api/v1/news?date=YYYY-MM-DD` for news retrieval
 - Validates date format (YYYY-MM-DD)
 - Checks Redis cache first; on cache miss, publishes to Kafka topic `news`
@@ -162,12 +164,15 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 **Crypto REST API** - Read-only API for cryptocurrency data
 - **Technology**: Spring Boot 3.5.7, Spring WebFlux, Spring Data Redis Reactive
 - **Role**: REST API (Read-only from Redis)
+- **Swagger UI**: http://localhost:8086/swagger.html
+- **OpenAPI Docs**: http://localhost:8086/v3/api-docs
 - Exposes reactive endpoints for current prices, individual prices, and statistics
 - Reads data stored by `price-processor-service`
 
 **Endpoints:**
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/api/v1/crypto/symbols` | List of available cryptocurrency symbols |
 | GET | `/api/v1/crypto/prices` | All current prices |
 | GET | `/api/v1/crypto/prices/{symbol}` | Price by symbol (BTC, ETH, SOL) |
 | GET | `/api/v1/crypto/stats/{symbol}` | Statistics by symbol (min, max, avg) |
@@ -183,6 +188,39 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 | Kafka UI | provectuslabs/kafka-ui:latest | 8090 | Monitoring dashboard |
 | Redis | redis:latest | 6379 | Cache and data storage |
 | Datadog Agent | datadog/agent:latest | 8126, 8125/udp | APM traces and DogStatsD metrics |
+
+---
+
+## 📚 Swagger/OpenAPI Documentation
+
+Interactive API documentation is available for all REST services:
+
+| Service | Swagger UI | OpenAPI Docs |
+|---------|------------|--------------|
+| **News API** | http://localhost:8080/swagger.html | http://localhost:8080/v3/api-docs |
+| **Crypto API** | http://localhost:8086/swagger.html | http://localhost:8086/v3/api-docs |
+
+### News API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/news?date={YYYY-MM-DD}` | Get news articles by date |
+
+### Crypto API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/crypto/symbols` | List of available cryptocurrency symbols |
+| GET | `/api/v1/crypto/prices` | All current cryptocurrency prices |
+| GET | `/api/v1/crypto/prices/{symbol}` | Current price by symbol (BTC, ETH, SOL) |
+| GET | `/api/v1/crypto/stats/{symbol}` | Price statistics (min, max, avg, sample count) |
+
+### Using Swagger UI
+
+1. Open your browser to the Swagger UI URL
+2. Click on any endpoint to expand its details
+3. Click "Try it out" to test the endpoint directly
+4. See request/response schemas, parameters, and response codes
 
 ---
 
@@ -249,8 +287,40 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 # First request (triggers async fetch, returns 404)
 curl "http://localhost:8080/api/v1/news?date=2024-01-15"
 
-# Second request (returns cached data, 200)
+# Subsequent requests (returns cached data, 200)
 curl "http://localhost:8080/api/v1/news?date=2024-01-15"
+```
+
+### Crypto API
+```bash
+# Get list of available cryptocurrencies
+curl "http://localhost:8086/api/v1/crypto/symbols"
+# Response: {"symbols":["BTC","ETH","SOL"],"count":3,"message":"Available cryptocurrency symbols"}
+
+# Get all current prices
+curl "http://localhost:8086/api/v1/crypto/prices"
+# Response: [{"symbol":"BTC","name":"Bitcoin","priceUsd":67518.0,...}]
+
+# Get price by symbol
+curl "http://localhost:8086/api/v1/crypto/prices/BTC"
+# Response: {"symbol":"BTC","name":"Bitcoin","priceUsd":67518.0,...}
+
+# Get price statistics
+curl "http://localhost:8086/api/v1/crypto/stats/BTC"
+# Response: {"symbol":"BTC","currentPrice":67518.0,"minPrice":65000.0,"maxPrice":70000.0,"avgPrice":68000.0,"sampleCount":10}
+```
+
+### OpenAPI Documentation
+```bash
+# News API Swagger UI
+open http://localhost:8080/swagger.html
+
+# Crypto API Swagger UI
+open http://localhost:8086/swagger.html
+
+# JSON OpenAPI specs
+curl http://localhost:8080/v3/api-docs
+curl http://localhost:8086/v3/api-docs
 ```
 
 ### Crypto API
