@@ -6,7 +6,7 @@ spring:
     name: price-processor-service
 
   kafka:
-    bootstrap-servers: ${KAFKA_SERVER:localhost:29092}
+    bootstrap-servers: kafka:29092
     consumer:
       group-id: price-processor-group
       auto-offset-reset: earliest
@@ -17,16 +17,17 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_SERVER:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:myredis}
-    jackson:
-      serialization:
-        write-dates-as-timestamps: false
-      serialization:
-        write-dates-as-timestamps: false
-      deserialization:
-        fail-on-unknown-properties: false
+      host: redis
+      port: 6379
+      password: myredis
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      write-date-timestamps-as-nanoseconds: false
+    deserialization:
+      fail-on-unknown-properties: false
+      accept-empty-string-as-null-object: true
 
 management:
   endpoints:
@@ -38,25 +39,15 @@ management:
       simple:
         enabled: true
     tags:
-      application: ${spring.application.name}
-      service: ${DD_SERVICE:price-processor-service}
-      env: ${DD_ENV:docker-local}
+      application: price-processor-service
+      service: price-processor-service
+      env: docker-local
   tracing:
     sampling:
       probability: 1.0
   endpoint:
     health:
       show-details: always
-
-# Datadog configuration
-datadog:
-  trace:
-    enabled: true
-    agent-host: ${DD_AGENT_HOST:localhost}
-    agent-port: 8126
-    service-name: ${DD_SERVICE:price-processor-service}
-    env: ${DD_ENV:docker-local}
-    version: ${DD_VERSION:1.0.0}
 
 logging:
   level:

@@ -22,6 +22,9 @@ public class RedisConfig {
         // Configure ObjectMapper with JSR310 module for Java 8 date/time support
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.findAndRegisterModules();
 
         Jackson2JsonRedisSerializer<Object> valueSerializer =
                 new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
