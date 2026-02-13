@@ -9,3 +9,15 @@ spring:
       host: ${REDIS_SERVER:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:myredis}
+
+# Swagger/OpenAPI configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    display-request-duration: true
+  show-actuator: true
