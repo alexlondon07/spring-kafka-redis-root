@@ -44,6 +44,15 @@ services:
     volumes:
       - redis-data:/data
 
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis-insight-data:/redis-insight-data
+    restart: always
+
   datadog-agent:
     image: datadog/agent:latest
     container_name: datadog-agent
@@ -243,3 +252,4 @@ services:
 
 volumes:
   redis-data:
+  redis-insight-data:
