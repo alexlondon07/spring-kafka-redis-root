@@ -47,7 +47,8 @@ public class AlertDetectionService {
             PriceAlert alert = PriceAlert.builder()
                     .symbol(symbol)
                     .alertType(alertType)
-                    .previousPrice(currentPrice)
+                    .previousPrice(previousPrice)
+                    .currentPrice(currentPrice)
                     .changePercent(change.setScale(2, RoundingMode.HALF_UP))
                     .timestamp(Instant.now())
                     .message(String.format("%s %s %.2f%% from $%s to $%s",
