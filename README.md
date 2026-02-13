@@ -2,7 +2,9 @@
 
 A microservices architecture demonstrating event-driven communication using Apache Kafka, Redis caching, and Spring Boot with reactive programming and Datadog observability.
 
-## Architecture Overview
+## 🏗️ Architecture Overview
+
+![Architecture Diagram](architecture.png)
 
 This project implements a **cache-aside pattern** with asynchronous data fetching through Kafka messaging. The system includes three main flows:
 
@@ -10,77 +12,6 @@ This project implements a **cache-aside pattern** with asynchronous data fetchin
 2. **Crypto Flow**: Scheduled fetching of cryptocurrency prices from CoinGecko API
 3. **Price Processing**: Consumes crypto prices, stores data, calculates statistics
 4. **Alert Detection**: Detects significant price changes and publishes alerts
-
-### Architecture Diagram
-
-```mermaid
-graph TB
-    Client[Client/Browser]
-
-    subgraph "Docker Environment"
-        subgraph "News Flow"
-            NewsAPI[news-api:8080<br/>REST API Service]
-            Worker[worker-service:8081<br/>Kafka Consumer]
-        end
-
-        subgraph "Crypto Flow"
-            CryptoFetcher[crypto-fetcher-service:8083<br/>Scheduled Producer]
-            PriceProcessor[price-processor-service:8084<br/>Price Storage & Analytics]
-            AlertService[alert-service:8085<br/>Price Alert Detection]
-            CryptoAPI[crypto-api:8086<br/>REST API Read-Only]
-        end
-
-        subgraph "Infrastructure"
-            Kafka[Apache Kafka<br/>Message Broker]
-            Zookeeper[Zookeeper<br/>Kafka Coordinator]
-            Redis[(Redis Cache<br/>Port 6379)]
-            KafkaUI[Kafka UI:8090<br/>Monitoring]
-            Datadog[Datadog Agent<br/>APM & Metrics]
-        end
-    end
-
-    MediaStack[MediaStack API<br/>External News Service]
-    CoinGecko[CoinGecko API<br/>Crypto Prices]
-
-    %% News Flow
-    Client -->|GET /api/v1/news?date=YYYY-MM-DD| NewsAPI
-    NewsAPI -->|Check cache| Redis
-    NewsAPI -->|Cache MISS: Publish to 'news' topic| Kafka
-    Kafka -->|Consume message| Worker
-    Worker -->|Fetch news| MediaStack
-    Worker -->|Store in cache| Redis
-
-    %% Crypto Flow
-    CryptoFetcher -->|Scheduled every 5min| CoinGecko
-    CryptoFetcher -->|Publish to 'crypto-prices' topic| Kafka
-    Kafka -->|Consume messages| PriceProcessor
-    Kafka -->|Consume messages| AlertService
-    PriceProcessor -->|Store current, history & stats| Redis
-    AlertService -->|Publish to 'price-alerts' topic| Kafka
-
-    %% Crypto API
-    Client -->|GET /api/v1/crypto/*| CryptoAPI
-    CryptoAPI -->|Read prices & stats| Redis
-
-    %% Observability
-    NewsAPI -.->|Traces & Metrics| Datadog
-    Worker -.->|Traces & Metrics| Datadog
-    CryptoFetcher -.->|Traces & Metrics| Datadog
-    PriceProcessor -.->|Traces & Metrics| Datadog
-    AlertService -.->|Traces & Metrics| Datadog
-    CryptoAPI -.->|Traces & Metrics| Datadog
-
-    style NewsAPI fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
-    style Worker fill:#2196F3,stroke:#333,stroke-width:2px,color:#fff
-    style CryptoFetcher fill:#9C27B0,stroke:#333,stroke-width:2px,color:#fff
-    style PriceProcessor fill:#FF6B6B,stroke:#333,stroke-width:2px,color:#fff
-    style AlertService fill:#E91E63,stroke:#333,stroke-width:2px,color:#fff
-    style CryptoAPI fill:#00BCD4,stroke:#333,stroke-width:2px,color:#fff
-    style Kafka fill:#FF9800,stroke:#333,stroke-width:2px,color:#fff
-    style KafkaUI fill:#607D8B,stroke:#333,stroke-width:2px,color:#fff
-    style Redis fill:#F44336,stroke:#333,stroke-width:2px,color:#fff
-    style Datadog fill:#632CA6,stroke:#333,stroke-width:2px,color:#fff
-```
 
 ---
 
@@ -98,6 +29,8 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 ---
 
 ## Services
+
+![News API Swagger](images/news-api.png)
 
 ### 1. news-api (Port 8080)
 **REST API Service** - Handles client requests and manages cache
@@ -160,6 +93,8 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 }
 ```
 
+![Crypto API Swagger](images/crypto-api.png)
+
 ### 6. crypto-api (Port 8086)
 **Crypto REST API** - Read-only API for cryptocurrency data
 - **Technology**: Spring Boot 3.5.7, Spring WebFlux, Spring Data Redis Reactive
@@ -188,6 +123,298 @@ This project includes a learning tutorial for building a Crypto Price Tracker. S
 | Kafka UI | provectuslabs/kafka-ui:latest | 8090 | Monitoring dashboard |
 | Redis | redis:latest | 6379 | Cache and data storage |
 | Datadog Agent | datadog/agent:latest | 8126, 8125/udp | APM traces and DogStatsD metrics |
+| Redis Insight | redislabs/redisinsight:latest | 5540 | Redis GUI for cache monitoring |
+
+---
+
+## 🛠️ Redis Insight - Redis GUI
+
+![Redis Insight Interface](images/redis.png)
+
+A modern Redis GUI for monitoring and managing Redis cache with a beautiful web interface.
+
+**Access**: http://localhost:5540
+
+**Features**:
+- Visualize all Redis keys and data structures
+- Browse, search, and filter keys with advanced filtering
+- View and edit key values (JSON, strings, lists, etc.)
+- Monitor Redis performance metrics and memory usage
+- Execute Redis commands with built-in CLI
+- Analyze key patterns and memory consumption
+- Browser tool for exploring nested data structures
+- Support for Redis Streams, Sets, Sorted Sets, Hashes
+
+---
+
+### 📝 Configuration Guide
+
+#### First Time Setup
+
+1. Open **http://localhost:5540** in your browser
+2. Click **"Add Redis Database"** button (blue button on the right)
+3. Enter the following connection details:
+
+| Setting | Value |
+|---------|-------|
+| **Host** | `redis` |
+| **Port** | `6379` |
+| **Password** | `myredis` |
+| **Name** | `Local Redis` (optional) |
+
+4. Click **"Test Connection"** to verify
+5. Click **"Add Database"** to save
+
+#### Connection Details
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Add Redis Database                                      │
+├─────────────────────────────────────────────────────────┤
+│  Host:         [redis________________]                    │
+│  Port:         [6379________________]                    │
+│  Password:     [myredis___________] 🔒                  │
+│  Name:         [Local Redis_______] (optional)           │
+│                                                         │
+│  [✓ Test Connection]  [+ Add Database]                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 🔍 Browsing Keys
+
+#### Using the Browser
+
+After connecting, you'll see the Redis database browser:
+
+| Section | Description |
+|---------|-------------|
+| **Keys List** | Shows all keys in the database |
+| **Filter Bar** | Search/filter keys by pattern |
+| **Memory Usage** | Shows memory consumption per key |
+| **Key Details** | Click a key to view/edit its value |
+
+#### Key Filters
+
+| Filter | Description | Example |
+|--------|-------------|---------|
+| `*` | All keys | Shows everything |
+| `crypto:*` | All crypto keys | `crypto:current:BTC` |
+| `*-*-*` | All date keys (news) | `2024-01-15` |
+| `crypto:current:*` | Current prices | `crypto:current:ETH` |
+| `crypto:stats:*` | Statistics keys | `crypto:stats:BTC` |
+| `crypto:history:*` | History keys | `crypto:history:SOL` |
+
+#### Example Searches
+
+```
+# Search bar examples:
+crypto:*                    # All crypto-related keys
+*-*-*                       # All news date keys
+crypto:current:BTC          # Bitcoin current price only
+2024-*                      # All news from 2024
+```
+
+---
+
+### 📊 Viewing Key Values
+
+#### String Keys (JSON Data)
+
+Click on keys like `crypto:current:BTC` to see:
+
+```
+Key: crypto:current:BTC
+Type: String
+TTL: no expiry
+Value:
+{
+  "symbol": "BTC",
+  "name": "Bitcoin",
+  "priceUsd": 68204.0,
+  "priceChange24h": 1.02,
+  "marketCap": 1357914283770.35,
+  "timestamp": 1770996236
+}
+```
+
+#### List Keys (Price History)
+
+Click on keys like `crypto:history:BTC` to see:
+
+```
+Key: crypto:history:BTC
+Type: List
+Length: 150
+Items:
+[0] {"symbol":"BTC","priceUsd":68000.0,"timestamp":"..."}
+[1] {"symbol":"BTC","priceUsd":68150.0,"timestamp":"..."}
+...
+```
+
+---
+
+### 🛠️ CLI Commands
+
+Access the built-in Redis CLI:
+
+1. Click **"CLI"** in the left sidebar
+2. Run commands:
+
+```bash
+# Check connection
+PING
+
+# Authenticate
+AUTH myredis
+
+# List all keys
+KEYS *
+
+# Get specific key
+GET crypto:current:BTC
+
+# Get all crypto keys
+KEYS crypto:*
+
+# Get memory usage by key
+MEMORY USAGE crypto:current:BTC
+
+# Get key type
+TYPE crypto:current:BTC
+
+# Get all statistics keys
+KEYS crypto:stats:*
+```
+
+---
+
+### 📈 Monitoring Performance
+
+#### Redis Stats Dashboard
+
+1. Click **"Workbench"** or **"Analytics"** in the left sidebar
+2. View:
+   - **Memory Usage**: Total/used memory
+   - **Keys Count**: Total keys by type
+   - **Connected Clients**: Active connections
+   - **Commands Executed**: Performance metrics
+
+#### Quick Health Check
+
+```bash
+# In CLI or terminal
+docker exec spring-kafka-redis-root-redis-1 redis-cli -a myredis INFO
+```
+
+---
+
+### 🔐 Security Notes
+
+| Credential | Value | Where Used |
+|------------|-------|------------|
+| **Host** | `redis` | Docker internal network |
+| **Port** | `6379` | Default Redis port |
+| **Password** | `myredis` | Authentication |
+
+> ⚠️ **Important**: These credentials are for local development only. Change the password for production deployments.
+
+---
+
+### 🧩 Common Key Patterns
+
+| Pattern | Type | Description | Example |
+|---------|------|-------------|---------|
+| `YYYY-MM-DD` | String | News articles cached | `2024-01-15` |
+| `crypto:current:{SYMBOL}` | String | Current price JSON | `crypto:current:BTC` |
+| `crypto:history:{SYMBOL}` | List | Price history list | `crypto:history:ETH` |
+| `crypto:stats:{SYMBOL}` | String | Statistics JSON | `crypto:stats:SOL` |
+| `crypto:stats:*_ALERT_TEST` | String | Test alert data | `crypto:stats:BTC_ALERT_TEST` |
+
+---
+
+### 🚨 Troubleshooting
+
+#### Connection Issues
+
+| Problem | Solution |
+|---------|----------|
+| "ECONNREFUSED" | Verify Redis container is running: `docker ps | grep redis` |
+| "Authentication failed" | Check password is `myredis` |
+| "Host not found" | Use `redis` not `localhost` (Docker network) |
+
+#### Verify Redis is Running
+
+```bash
+# Check container status
+docker ps | grep redis
+
+# Test connection from container
+docker exec spring-kafka-redis-root-redis-1 redis-cli -a myredis PING
+
+# Expected output: PONG
+```
+
+#### Reset Redis Data (Optional)
+
+```bash
+# Clear all keys (use carefully!)
+docker exec spring-kafka-redis-root-redis-1 redis-cli -a myredis FLUSHALL
+
+# Restart Redis container
+docker-compose restart redis
+```
+
+---
+
+## 🔍 Monitoring Tools
+
+### Redis Insight - Redis GUI
+**URL**: http://localhost:5540
+
+Monitor and manage your Redis cache with a modern, feature-rich web interface.
+
+![Kafka UI Overview](images/KafkaUI.png)
+
+### Kafka UI - Kafka Management
+**URL**: http://localhost:8090
+
+Monitor topics, messages, consumer groups, and broker health.
+
+![Kafka UI Topics](images/KafkaUI_2.png)
+
+### Datadog - APM & Metrics
+Monitor traces, metrics, and alerts from all services.
+
+---
+
+## 📚 Redis Key Patterns to Monitor
+
+When using Redis Insight, you can browse these key patterns:
+
+| Pattern | Description | Example |
+|----------|-------------|----------|
+| `YYYY-MM-DD` | News articles by date | `2024-01-15` |
+| `crypto:current:*` | Current cryptocurrency prices | `crypto:current:BTC` |
+| `crypto:history:*` | Price history lists | `crypto:history:BTC` |
+| `crypto:stats:*` | Price statistics | `crypto:stats:BTC` |
+
+### Example Keys to Search:
+```
+crypto:current:BTC      # Bitcoin current price
+crypto:current:ETH       # Ethereum current price
+crypto:current:SOL        # Solana current price
+crypto:stats:BTC          # Bitcoin statistics
+crypto:history:BTC       # Bitcoin price history
+2024-01-15              # News articles for Jan 15, 2024
+```
+
+### Quick Filters in Redis Insight:
+- Use the browser to navigate through all keys
+- Use filter: `crypto:*` - All crypto-related keys
+- Use filter: `*-*-*` - All date keys (news)
+- Use filter: `crypto:current:*` - All current prices
 
 ---
 
@@ -644,6 +871,20 @@ docker exec -it <kafka-container> kafka-topics --list --bootstrap-server localho
 - [ ] Add WebSocket for live price updates
 - [ ] Add Kubernetes deployment manifests
 - [ ] Implement API rate limiting
+
+---
+
+## 📸 Image Gallery
+
+| Interface | Description |
+|-----------|-------------|
+| ![Architecture](architecture.png) | System Architecture Diagram |
+| ![News API](images/news-api.png) | News API Swagger Documentation |
+| ![Crypto API](images/crypto-api.png) | Crypto API Swagger Documentation |
+| ![Redis Insight](images/redis.png) | Redis GUI Interface |
+| ![Kafka UI](images/KafkaUI.png) | Kafka Topics Overview |
+| ![Kafka UI 2](images/KafkaUI_2.png) | Kafka Messages View |
+| ![Kafka UI 3](images/kafkaUI_3.png) | Kafka Consumer Groups |
 
 ---
 
